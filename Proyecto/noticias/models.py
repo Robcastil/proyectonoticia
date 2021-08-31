@@ -12,7 +12,7 @@ class Titular(models.Model):
     titulo = models.CharField(max_length=200)
     fuente = models.ForeignKey(Fuente, on_delete=models.CASCADE)
     url = models.URLField()
-    fecha = models.DateField
+    fecha = models.DateTimeField()
         
     def __str__(self):
         return self.titulo

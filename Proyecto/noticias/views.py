@@ -6,6 +6,7 @@ import datetime as dt
 from dateutil.parser import *
 
 #noticias de Mashable
+        
 mash = Fuente()
 mash.nombre = 'Mashable'
 mash.url = 'https://mashable.com/feeds/rss/all'
@@ -25,6 +26,7 @@ for n in noticias:
     
     
 #noticias de The Verge
+
 verg = Fuente()
 verg.nombre = 'The Verge'
 verg.url = 'https://www.theverge.com/rss/index.xml'
@@ -43,6 +45,7 @@ for n in noticias:
 
 
 #noticias de TechCrunch
+
 techCr = Fuente()
 techCr.nombre = 'TechCrunch'
 techCr.url = 'https://techcrunch.com/feed/'
@@ -58,7 +61,7 @@ for n in noticias:
     titular.url = n.find('link').text
     titular.fecha = parse(n.find('pubDate').text)
     titular.save()
-    
+ 
 
 def index(req):
     t_mash = Titular.objects.filter(fuente__nombre='Mashable')[::-1][0:10]
@@ -70,5 +73,65 @@ def index(req):
     return render(req, 'noticias/index.html', {'t_mash': t_mash, 't_verge': t_verge, 't_TC': t_TC})
 
 def rescatar(req):
+    #noticias de Mashable
+        
+    ultimo = Titular.objects.filter(fuente__nombre='Mashable').latest('fecha')    
+    mash = Fuente()
+    mash.nombre = 'Mashable'
+    mash.url = 'https://mashable.com/feeds/rss/all'
+    mash.save()
+    Mash_req = requests.get(mash.url)
+    soup = BeautifulSoup(Mash_req.content,'xml')
+    noticias = soup.findAll('item')
+    
+    for n in noticias:
+        titular = Titular()
+        titular.fuente = mash
+        titular.titulo = n.find('title').text
+        titular.url = n.find('link').text
+        titular.fecha = parse(n.find('pubDate').text)
+        if titular.fecha > ultimo.fecha:
+            titular.save()
+            
+        
+        
+    #noticias de The Verge
+    ultimo = Titular.objects.filter(fuente__nombre='The Verge').latest('fecha')
+    verg = Fuente()
+    verg.nombre = 'The Verge'
+    verg.url = 'https://www.theverge.com/rss/index.xml'
+    verg.save()
+    Verge_req = requests.get(verg.url)
+    soup = BeautifulSoup(Verge_req.content, 'xml')
+    noticias = soup.findAll('entry')
+    
+    for n in noticias:
+        titular = Titular()
+        titular.fuente = verg
+        titular.titulo = n.find('title').text
+        titular.url = n.find('id').text
+        titular.fecha = parse(n.find('published').text)
+        if titular.fecha > ultimo.fecha:
+            titular.save()
+    
+    
+    #noticias de TechCrunch
+    ultimo = Titular.objects.filter(fuente__nombre='TechCrunch').latest('fecha')
+    techCr = Fuente()
+    techCr.nombre = 'TechCrunch'
+    techCr.url = 'https://techcrunch.com/feed/'
+    techCr.save()
+    TC_req = requests.get(techCr.url)
+    soup = BeautifulSoup(TC_req.content, 'xml')
+    noticias = soup.findAll('item')
+    
+    for n in noticias:
+        titular = Titular()
+        titular.fuente = techCr
+        titular.titulo = n.find('title').text
+        titular.url = n.find('link').text
+        titular.fecha = parse(n.find('pubDate').text)
+        if titular.fecha > ultimo.fecha:
+            titular.save()
     return redirect('../')
 # Create your views here.
